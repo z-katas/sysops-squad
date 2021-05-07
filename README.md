@@ -27,7 +27,7 @@ Also, the following need to be addressed as part of or soon after solving the ab
 - Ticket Shared component has business logic to create,update (change state) and fetch tickets in the system.
 - Ticket Maintenance component has simple APIs to fetch, create and update tickets from the database. Only Ticket Shared component accesses Ticket Maintenance component.
 - There are interfaces for all the behaviours exposed by the components. This would enable swapping implementations in case of roll backs during migration.
-
+- The static files of the user interface are in a different location than the backend code. 
 
 ## Solution
 ### Step 1
@@ -35,13 +35,13 @@ Investigate the current system to find the root cause of the problems.
 
 - Check the logs for errors or stack traces. See what is causing the tickets to go missing. Some of the speculations that can be made are:
   - A ticket may be in limbo due to a faulty state machine when the system is unable to find an Expert for the job at the time of processing (first run).
-    - A simple state machine for the problem statement may look like this ![State Machine](diagrams/Ticket_State_Machine.jpg)
+    - Implement a simple state machine, if not already present. It may look like this ![State Machine](diagrams/Ticket_State_Machine.jpg)
     - Also, the code to handle the state machine and the actions emanating from it should be in one place. See [State Machine in one place](ADRs/adr_state_machine_in_one_place.md)
   - There might not be a reliable queue due to which the async events may be getting lost when the system freezes.
     - Check Step 2 below for this.
   - Memory overflow issues, especially during peak loads.
     - For checking this, try to increase the RAM and/or the no. of processors for the machine on which this monolith is deployed. (In case of a dockerised environment, increase the RAM the application can actually consume)
-- Check if the logic for assigning an expert is correct. From the first look at the database given in the slides, there is no products table. Also, there may not be a relationship between products, expertise and contract. 
+- Check if the logic for assigning an expert is correct. From the first look at the database given in the slides, there is no products table. Also, there may not be a relationship between product and expertise, and between product and ticket. 
   - Introduce a products table in the database. 
   - Add an expertise column in the product table. 
   - A ticket should also contain the product details. This would help while assigning an expert (with a particular expertise) to the ticket.
@@ -146,6 +146,8 @@ Use *Branch by Abstraction* pattern to extract out Ticket Shared and Ticket Main
     - Point Ticket Service microservice to ticket database.
     - Deploy and test the change in dev environment.
     - Once the changes are stable, deploy the change to production.
+- If the migration goes as expected, remove the code from **ss.ticket** namespace in the monolith.
+
 
 ![Ticket Service_Split microservice from monolith](diagrams/Ticket_Service_Split_microservice_from_monolith.jpg)
 
@@ -153,11 +155,34 @@ Use *Branch by Abstraction* pattern to extract out Ticket Shared and Ticket Main
 Migrate **Reporting Shared**, **Expert Reports**, **Ticket Reports** and **Financial Reports** components from monolith to Reports Service.
 
 - Since no other components in the system depend on the above components, they can be extracted out of the monolith using the *Strangler Fig Pattern.* Refer to Step 6 on how this can be done.
+- Report service need not have a database of its own yet. All the information needed for this service to function exists in the monolith. 
 - Deploy and test the change in dev environment.
 - Once the changes are stable, deploy the change to production.
 
 
 ### Step 11
+Move the foreign key relationships on the customer tables from database layer to code layer. Currently,
+
+- Customer table depends on the Contract, Customer_Survey, Billing and Ticket tables (Move)
+- Customer_Notification table depends on the Customer table. (Keep)
+
+Process:
+- Refer to Step 7 above for example.
+
+### Step 12
+Move the customer and billing related tables to the customer database. They are Customer, Customer_Notification, Contract, Billing, Product, Payment and Payment_Method.
+
+Process:
+- Refer to Step 8 above for example.
+
+### Step 13
+Migrate **Support Contract**, **Billing Payment** and **Billing History** components from monolith to Customer Service.
+
+- Since no other components in the system depend on the above components, they can be extracted out of the monolith using the *Strangler Fig Pattern.* Refer to Step 6 on how this can be done.
+- Deploy and test the change in dev environment.
+- Once the changes are stable, deploy the change to production.
+
+### Step 14
 Migrate **Customer Profile** component from monolith to Customer Service.
 
 - Use *Branch by Abstraction pattern* to achieve this. Refer to Step 9 above for an example on how to go about doing this.
@@ -165,37 +190,40 @@ Migrate **Customer Profile** component from monolith to Customer Service.
 - Once the changes are stable, deploy the change to production.
 
 
-### Step 12
-Migrate **Support Contract**, **Billing Payment** and **Billing History** components from monolith to Customer Service.
+### Step 15
+Move the foreign key relationships on the knowledgebase tables from database layer to code layer.
 
-- Since no other components in the system depend on the above components, they can be extracted out of the monolith using the *Strangler Fig Pattern.* Refer to Step 6 on how this can be done.
-- Deploy and test the change in dev environment.
-- Once the changes are stable, deploy the change to production.
+- Article table depends on the Sysops_User table (Move)
+- Rest of the foreign keys among Tag, Article_Tag, Article, Keyword and Article_Keyword can be kept intact.
+
+Process:
+- Refer to Step 7 above for example.
 
 
-### Step 13
-Migrate Knowledge base related components from monolith to Knowledgebase Service
+### Step 16
+Migrate Knowledgebase related components from monolith to Knowledgebase Service. They are KB Maintenance and KB Search.
 
 - Since no other components in the system depend on the Knowledge base component, it can be extracted out of the monolith using the *Strangler Fig Pattern.* Refer to Step 6 on how this can be done.
 - Deploy and test the change in dev environment.
 - Once the changes are stable, deploy the change to production.
 
 
-### Step 12
+### Step 17
 Migrate Survey related components from monolith to Reports Service.
 
 - The only components depending on Survey component are Ticket Completion and Expert Reports. These are already moved out to their respective services above. So Survey may be extracted out using *Strangler Fig Pattern*
 - Deploy and test the change in dev environment.
 - Once the changes are stable, deploy the change to production.
 
-### Step 13
-Split User Service
+### Step 18
+Migrate User Service
+- This service may continue to exist in the monolith
 
 
 ## Further Improvements
 - [ADR - Products table in Customer Service](ADRs/adr_products_in_customer_service.md)
 - Notification component currently co-exists with Login Component. Ideally notification service may exist independently, catering to billing notifications for customers and general info for now. (for now and internal users later on). But the notifications may exist independently as its scale and purpose are different from the rest of the. Notification service may also maintain customer’s/expert’s ticket related notifications, which are currently sent via email/SMS, for tracking (to avoid repudiation).
-- Currently, there seems to be no relation between survey and ticket. Add a ticket_id to the survey.
+- Currently, there seems to be no relation between survey and ticket. Add a ticket_id to the survey table.
 
 
 ## Note
