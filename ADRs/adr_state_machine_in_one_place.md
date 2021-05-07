@@ -8,7 +8,7 @@ Proposed
 The ticket goes through various state changes during its lifecycle. Each state change may trigger different behaviours:
 - Change from DRAFT to CREATED triggers an event to assign relevant Expert for the task.
 - Change from CREATED to ASSIGNED triggers an event to notify the assigned Expert about the task.
-- Change from INPROGRESS to COMPLETED triggers an event to send relevant survey to the Customer email.
+- Change from INPROGRESS to COMPLETED triggers an event to send relevant the survey to the Customer email.
 
 See diagram for the state changes allowed.
   
