@@ -146,7 +146,7 @@ Use *Branch by Abstraction* pattern to extract out Ticket Shared and Ticket Main
     - Point Ticket Service microservice to ticket database.
     - Deploy and test the change in dev environment.
     - Once the changes are stable, deploy the change to production.
-- If the migration goes as expected, remove the code from **ss.ticket** namespace in the monolith.
+- If the migration goes as expected, remove the code, except TicketServiceClient, from **ss.ticket** namespace in the monolith.
 
 
 ![Ticket Service_Split microservice from monolith](diagrams/Ticket_Service_Split_microservice_from_monolith.jpg)
@@ -158,7 +158,7 @@ Migrate **Reporting Shared**, **Expert Reports**, **Ticket Reports** and **Finan
 - Report service need not have a database of its own yet. All the information needed for this service to function exists in the monolith. 
 - Deploy and test the change in dev environment.
 - Once the changes are stable, deploy the change to production.
-
+- If the migration goes as expected, remove the code from **ss.report** namespace in the monolith.
 
 ### Step 11
 Move the foreign key relationships on the customer tables from database layer to code layer. Currently,
@@ -181,6 +181,8 @@ Migrate **Support Contract**, **Billing Payment** and **Billing History** compon
 - Since no other components in the system depend on the above components, they can be extracted out of the monolith using the *Strangler Fig Pattern.* Refer to Step 6 on how this can be done.
 - Deploy and test the change in dev environment.
 - Once the changes are stable, deploy the change to production.
+- If the migration goes as expected, remove the code from **ss.billing.payment** and **ss.billing.history** namespaces in the monolith.
+
 
 ### Step 14
 Migrate **Customer Profile** component from monolith to Customer Service.
@@ -206,6 +208,8 @@ Migrate Knowledgebase related components from monolith to Knowledgebase Service.
 - Since no other components in the system depend on the Knowledge base component, it can be extracted out of the monolith using the *Strangler Fig Pattern.* Refer to Step 6 on how this can be done.
 - Deploy and test the change in dev environment.
 - Once the changes are stable, deploy the change to production.
+- If the migration goes as expected, remove the code from **ss.kb.maintenance** and **ss.kb.search** namespaces in the monolith.
+
 
 
 ### Step 17
@@ -214,15 +218,18 @@ Migrate Survey related components from monolith to Reports Service.
 - The only components depending on Survey component are Ticket Completion and Expert Reports. These are already moved out to their respective services above. So Survey may be extracted out using *Strangler Fig Pattern*
 - Deploy and test the change in dev environment.
 - Once the changes are stable, deploy the change to production.
+- If the migration goes as expected, remove the code from **ss.survey** namespace in the monolith.
+
+
 
 ### Step 18
 Migrate User Service
-- This service may continue to exist in the monolith
+- This service may continue to exist in the monolith because most of the code in the monolith has been moved / removed. However, it would be best to have login handled by an external IDP (like okta or auth0) for better security (in terms of multi-factor authentication) since the system is handling credit card information. 
 
 
 ## Further Improvements
 - [ADR - Products table in Customer Service](ADRs/adr_products_in_customer_service.md)
-- Notification component currently co-exists with Login Component. Ideally notification service may exist independently, catering to billing notifications for customers and general info for now. (for now and internal users later on). But the notifications may exist independently as its scale and purpose are different from the rest of the. Notification service may also maintain customer’s/expert’s ticket related notifications, which are currently sent via email/SMS, for tracking (to avoid repudiation).
+- Notification component currently co-exists with Login Component. Ideally notification service may exist independently, catering to billing notifications for customers and general info (for now and internal users later on). Also, its scale and purpose are different from the rest of the system. Notification service may also maintain customer’s/expert’s ticket related notifications, which are currently sent via email/SMS, for tracking (to avoid repudiation).
 - Currently, there seems to be no relation between survey and ticket. Add a ticket_id to the survey table.
 
 
@@ -236,8 +243,8 @@ Migrate User Service
   
 
 ## References
-<https://betterprogramming.pub/rabbitmq-vs-kafka-1779b5b70c41>
+https://betterprogramming.pub/rabbitmq-vs-kafka-1779b5b70c41
 
-<https://learning.oreilly.com/library/view/monolith-to-microservices/9781492047834/>
+https://learning.oreilly.com/library/view/monolith-to-microservices/9781492047834/
 
-
+https://microservices.io/refactoring/
