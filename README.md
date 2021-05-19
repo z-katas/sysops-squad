@@ -1,3 +1,13 @@
+# Sysops Squad Migration
+
+## Table of Contents
+- [Introduction](#introduction)
+- [Assumptions](#assumptions)
+- [Migration Plan](#migration-Plan)
+- [Further Improvements](#further-Improvements)
+- [Note](#note)
+- [References](#references)
+
 ## Introduction
 Since tickets form the crux of the Sysops Squad business, ticket related problems in the current system should be prioritised in order to continue business. Those problems are:
 
@@ -29,7 +39,7 @@ Also, the following need to be addressed as part of or soon after solving the ab
 - There are interfaces for all the behaviours exposed by the components. This would enable swapping implementations in case of roll backs during migration.
 - The static files of the user interface are in a different location than the backend code. 
 
-## Solution
+## Migration Plan
 ### Step 1
 Investigate the current system to find the root cause of the problems.
 
