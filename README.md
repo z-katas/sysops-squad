@@ -236,6 +236,8 @@ Migrate Survey related components from monolith to Reports Service.
 Migrate User Service
 - This service may continue to exist in the monolith because most of the code in the monolith has been moved / removed. However, it would be best to have login handled by an external IDP (like okta or auth0) for better security (in terms of multi-factor authentication) since the system is handling credit card information. 
 
+### Final Architecture
+![Final Architecture](diagrams/Final-Architecture_C2-Diagram.jpg)
 
 ## Further Improvements
 - [ADR - Products table in Customer Service](ADRs/adr_products_in_customer_service.md)
